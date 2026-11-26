@@ -1,4 +1,3 @@
-#pragma GCC diagnostic ignored "-Wunused-function"
 
 #include "aad_data_types.h"   // tipos v8si, u32_t
 #include "aad_sha1.h"         // H0..H4 e a macro

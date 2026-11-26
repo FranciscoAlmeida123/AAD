@@ -57,3 +57,21 @@ Defini estes passos com a IA, e a IA aplicou-os ao meu ficheiro a meu pedido.
 - acrescentou as regras de compilação do grupo no fim do `makefile` do docente.
 
 **Como verifiquei:** `make` sem avisos e `make test` sem falhas.
+
+---
+
+## 26/11/2026 — erro da IA que encontrei: o `#pragma` não era preciso
+
+**Problema:** ao limpar o meu `src/aad_avx.c`, tirei 1 linha que achei que não usava: `#pragma GCC diagnostic ignored "-Wunused-function"`.
+
+**O que a IA tinha dito:** que o `#pragma` era necessário para evitar avisos "defined but not used". A IA tinha me dito para o por, sem testar.
+
+**O que eu achei:** que eu nunca tinha visto isto e que pragma` não era importante. Discuti isto com a IA.
+
+**Como verifiquei:**compilei o `aad_avx.c` de 2 formas, com as opções do `make` (`-Wall -Wextra`): sem `#pragma` e com `#pragma`. As duas compilam sem nenhum aviso.
+
+**Estava certo?** Eu estava certo: o `#pragma` não é preciso. 
+
+**O que mudei:** O `#pragma` pode sair também do `aad_avx2.c` e do `aad_avx512.c`.
+
+**O que aprendi:** não aceitar uma sugestão da IA sem a testar. Um include pode parecer "não usado" e ser preciso por causa de uma função que vem de dentro dele.
