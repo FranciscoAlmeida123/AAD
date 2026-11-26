@@ -98,7 +98,7 @@ HEADERS = $(wildcard src/*.h) aad_sha1.h aad_sha1_cpu.h aad_data_types.h aad_png
 # each SIMD engine is compiled with ITS flags only (no -march=native), chosen at run time
 ENGINE_OBJS = $(BIN)/aad_avx.o $(BIN)/aad_avx2.o $(BIN)/aad_avx512.o $(BIN)/aad_omp.o $(BIN)/aad_cuda_host.o
 
-.PHONY: all test portable clean
+.PHONY: all test portable clean cuda test_engines test_engines_cuda sha1_cuda_test_13
 
 all: $(BIN)/aad_modify $(BIN)/test_bloco_a
 
@@ -128,3 +128,25 @@ test: $(BIN)/test_bloco_a $(BIN)/aad_modify
 
 portable: | $(BIN)
 	$(CC) $(CFLAGS) -DAAD_PORTABLE src/aad_modify.c $(COMMON) -o $(BIN)/aad_modify_portable
+
+# CUDA (precisa de nvcc e de uma placa NVIDIA; CUDA_DIR e CUDA_ARCH são as variáveis do professor, no início deste makefile)
+#   make cuda   ->   bin/aad_search_kernel.cubin  e  bin/aad_modify_cuda
+CPU_OBJS = $(BIN)/aad_avx.o $(BIN)/aad_avx2.o $(BIN)/aad_avx512.o $(BIN)/aad_omp.o
+
+cuda: $(CPU_OBJS) | $(BIN)
+	nvcc -arch=$(CUDA_ARCH) --compiler-options -O2,-Wall,-Wextra -I . -I src -I$(CUDA_DIR)/include --cubin src/aad_search_kernel.cu -o $(BIN)/aad_search_kernel.cubin
+	$(CC) $(CFLAGS) -DAAD_CUDA -I$(CUDA_DIR)/include src/aad_modify.c src/aad_cuda_host.c $(COMMON) $(CPU_OBJS) -o $(BIN)/aad_modify_cuda -fopenmp -L$(CUDA_DIR)/lib64/stubs -lcuda
+
+# testes de aceitação dos motores do António (tests/test_engines.c); correr a partir desta pasta
+test_engines: $(CPU_OBJS) | $(BIN)
+	$(CC) $(CFLAGS) tests/test_engines.c $(COMMON) $(CPU_OBJS) src/aad_cuda_host.c -o $(BIN)/test_engines -fopenmp
+	./$(BIN)/test_engines
+
+test_engines_cuda: cuda
+	$(CC) $(CFLAGS) -DAAD_CUDA -I$(CUDA_DIR)/include tests/test_engines.c src/aad_cuda_host.c $(COMMON) $(CPU_OBJS) -o $(BIN)/test_engines_cuda -fopenmp -L$(CUDA_DIR)/lib64/stubs -lcuda
+	./$(BIN)/test_engines_cuda
+
+# teste CUDA do professor (sha1_cuda_test) no CUDA 13, sem alterar os ficheiros dele
+sha1_cuda_test_13: aad_sha1_cuda_test.c sha1_cuda_kernel.cubin
+	cc -march=native -Wall -Wextra -Wshadow -O3 -I$(CUDA_DIR)/include -include tests/cuda13_compat.h $< -o sha1_cuda_test -L$(CUDA_DIR)/lib64/stubs -lcuda
+	./sha1_cuda_test
