@@ -1,0 +1,2 @@
+AAD 2026/2027 - assignment A1
+The last line of this file was chosen so that its SHA1 ends with 32 zero bits.
